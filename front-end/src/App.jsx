@@ -159,8 +159,8 @@ function App() {
           <div className={isAdmin ? "grid grid-cols-1 gap-8" : "grid grid-cols-1 lg:grid-cols-3 gap-8"}>
             {activeTab === "products" && (
               <>
-                <div className={isAdmin ? "lg:col-span-2" : "lg:col-span-2"}>
-                  <ProductGrid
+                <div className={isAdmin ? "lg:col-span-2" : "lg:col-span-2"}> 
+                    <ProductGrid
                     products={products}
                     isFetching={isFetchingProducts}
                     deletingProductId={deletingProductId}
@@ -169,7 +169,7 @@ function App() {
                     onAddToCart={handleAddToCart}
                     isAdmin={isAdmin}
                   />
-                </div>
+                  </div>
                 {!isAdmin && (
                   <CartSidebar
                     showCart={showCart}

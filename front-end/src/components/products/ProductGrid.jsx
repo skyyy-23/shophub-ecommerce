@@ -12,7 +12,7 @@ function ProductGrid({
 }) {
   return (
     <section>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-2">
         <h2 className="text-3xl font-bold text-gray-800 dark:text-white">Products</h2>
 
         {isFetching && (
@@ -37,19 +37,23 @@ function ProductGrid({
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {products.map((product) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              isAdmin={isAdmin}
-              isDeleting={deletingProductId === product.id}
-              disableProductActions={deletingProductId !== null}
-              onEdit={onEdit}
-              onDelete={onDelete}
-              onAddToCart={onAddToCart}
-            />
-          ))}
+        <div className="overflow-auto h-[65vh]">
+        <div className="overflow-auto h-[100%]">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3 p-5">
+            {products.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                isAdmin={isAdmin}
+                isDeleting={deletingProductId === product.id}
+                disableProductActions={deletingProductId !== null}
+                onEdit={onEdit}
+                onDelete={onDelete}
+                onAddToCart={onAddToCart}
+              />
+            ))}
+          </div>
+        </div>
         </div>
       )}
     </section>
