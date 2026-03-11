@@ -1,0 +1,102 @@
+import {
+  FiMoon,
+  FiPlus,
+  FiShoppingBag,
+  FiShoppingCart,
+  FiSun,
+  FiUser,
+  FiLogOut,
+  FiLogIn,
+} from "react-icons/fi";
+
+function AppHeader({
+  darkMode,
+  cartCount,
+  user,
+  onOpenAddProduct,
+  onToggleCart,
+  onToggleTheme,
+  onLogin,
+  onLogout,
+}) {
+  return (
+    <header className="sticky top-0 z-50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-700 shadow-sm">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+              <FiShoppingBag className="text-white text-xl" />
+            </div>
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
+              ShopHub
+            </h1>
+          </div>
+
+          <div className="flex items-center gap-4">
+            {user && user.role === 'admin' && (
+              <button
+                onClick={onOpenAddProduct}
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold px-4 py-2 rounded-lg shadow"
+              >
+                <FiPlus />
+                Add Product
+              </button>
+            )}
+
+            <button
+              onClick={onToggleCart}
+              className="relative p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            >
+              <FiShoppingCart className="text-2xl" />
+              {cartCount > 0 && (
+                <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  {cartCount}
+                </span>
+              )}
+            </button>
+
+            {user ? (
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 text-sm">
+                  <FiUser className="text-gray-600 dark:text-gray-400" />
+                  <span className="text-gray-700 dark:text-gray-300 font-medium">
+                    {user.name}
+                  </span>
+                  {user.role === 'admin' && (
+                    <span className="bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 text-xs px-2 py-1 rounded-full font-medium">
+                      Admin
+                    </span>
+                  )}
+                </div>
+                <button
+                  onClick={onLogout}
+                  className="inline-flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white font-semibold px-4 py-2 rounded-lg shadow"
+                >
+                  <FiLogOut />
+                  Logout
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={onLogin}
+                className="inline-flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white font-semibold px-4 py-2 rounded-lg shadow"
+              >
+                <FiLogIn />
+                Login
+              </button>
+            )}
+
+            <button
+              onClick={onToggleTheme}
+              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-xl"
+            >
+              {darkMode ? <FiSun /> : <FiMoon />}
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+export default AppHeader;
