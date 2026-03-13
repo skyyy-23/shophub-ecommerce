@@ -145,12 +145,12 @@ function AdminOrderPanel() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
           Order Management
         </h2>
-        <div className="text-sm text-gray-500 dark:text-gray-400">
+        <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
           {orders.length + 1} total orders
         </div>
       </div>
@@ -165,7 +165,7 @@ function AdminOrderPanel() {
         </div>
       ) : (
         <>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {currentOrders.map((order) => {
             const statusInfo = statusConfig[order.status] || statusConfig.pending;
             const StatusIcon = statusInfo.icon;
@@ -173,18 +173,18 @@ function AdminOrderPanel() {
             return (
               <div
                 key={order.id}
-                className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow"
+                className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6 hover:shadow-md transition-shadow"
               >
-                <div className="flex items-start justify-between mb-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-4">
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
                       Order #{order.id}
                     </h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                       User ID: {order.user_id}
                     </p>
                   </div>
-                  <div className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${statusInfo.color}`}>
+                  <div className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] sm:text-xs font-medium ${statusInfo.color}`}>
                     <StatusIcon className="w-3 h-3 mr-1" />
                     {statusInfo.label}
                   </div>
@@ -192,20 +192,20 @@ function AdminOrderPanel() {
 
                 <div className="space-y-3 mb-4">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-500 dark:text-gray-400">Total Amount</span>
-                    <span className="text-lg font-semibold text-gray-900 dark:text-white">
+                    <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Total Amount</span>
+                    <span className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
                       {formatPrice(order.total_price)}
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-500 dark:text-gray-400">Items</span>
-                    <span className="text-sm font-medium text-gray-900 dark:text-white">
+                    <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Items</span>
+                    <span className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white">
                       {order.order_items?.length + 1 || 0} items
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-500 dark:text-gray-400">Date</span>
-                    <span className="text-sm text-gray-900 dark:text-white">
+                    <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Date</span>
+                    <span className="text-xs sm:text-sm text-gray-900 dark:text-white">
                       {new Date(order.created_at).toLocaleDateString()}
                     </span>
                   </div>
@@ -214,13 +214,13 @@ function AdminOrderPanel() {
                 {editingId === order.id ? (
                   <div className="space-y-3 pt-4 border-t border-gray-200 dark:border-gray-700">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         Update Status
                       </label>
                       <select
                         value={editStatus}
                         onChange={(e) => setEditStatus(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-xs sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       >
                         {statusOptions.map((opt) => (
                           <option key={opt.value} value={opt.value}>
@@ -230,14 +230,14 @@ function AdminOrderPanel() {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         Description (Optional)
                       </label>
                       <textarea
                         value={editDescription}
                         onChange={(e) => setEditDescription(e.target.value)}
                         placeholder={`Status updated to ${editStatus}`}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-xs sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                         rows={2}
                       />
                     </div>
@@ -245,7 +245,7 @@ function AdminOrderPanel() {
                       <button
                         onClick={() => handleSaveStatus(order.id)}
                         disabled={saving}
-                        className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                        className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors flex items-center justify-center gap-2"
                       >
                         {saving ? (
                           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
@@ -258,7 +258,7 @@ function AdminOrderPanel() {
                       </button>
                       <button
                         onClick={() => setEditingId(null)}
-                        className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-md text-sm font-medium transition-colors"
+                        className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-md text-xs sm:text-sm font-medium transition-colors"
                       >
                         <FiX className="w-4 h-4" />
                       </button>
@@ -267,7 +267,7 @@ function AdminOrderPanel() {
                 ) : (
                   <button
                     onClick={() => handleEditClick(order)}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors flex items-center justify-center gap-2"
                   >
                     <FiEdit className="w-4 h-4" />
                     Update Status
@@ -280,8 +280,8 @@ function AdminOrderPanel() {
 
         {/* Pagination Controls */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 mt-6">
-            <div className="text-sm text-gray-600 dark:text-gray-400">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 mt-6">
+            <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
               Showing {startIndex + 1}-{Math.min(endIndex, orders.length)} of {orders.length} orders
             </div>
 

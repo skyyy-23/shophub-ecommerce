@@ -122,11 +122,29 @@ function App() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 my-1">
           <CartNotification message={cartNotification} />
 
+          {activeTab === "products" && !isAdmin && (
+            <div className="md:hidden mb-4">
+              <CartSidebar
+                variant="inline"
+                showCart={showCart}
+                cart={cart}
+                total={total}
+                isPlacingOrder={isPlacingOrder}
+                onClose={() => setShowCart(false)}
+                onRemoveItem={removeFromCart}
+                onUpdateQuantity={updateQuantity}
+                onPlaceOrder={handlePlaceOrder}
+                onClearCart={clearCart}
+                isAdmin={isAdmin}
+              />
+            </div>
+          )}
+
           {/* Tab Navigation */}
-          <div className="flex gap-4 mb-6 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex flex-wrap gap-2 sm:gap-4 mb-6 border-b border-gray-200 dark:border-gray-700">
             <button
               onClick={() => setActiveTab("products")}
-              className={`px-4 py-2 font-semibold transition-colors ${
+              className={`px-3 sm:px-4 py-2 text-sm sm:text-base font-semibold transition-colors ${
                 activeTab === "products"
                   ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400"
                   : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
@@ -137,7 +155,7 @@ function App() {
 
             {user && !isAdmin && (
             <button onClick={() => setActiveTab("orders")}
-              className={`px-4 py-2 font-semibold transition-colors ${
+              className={`px-3 sm:px-4 py-2 text-sm sm:text-base font-semibold transition-colors ${
                 activeTab === "orders"
                   ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400"
                   : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
@@ -149,7 +167,7 @@ function App() {
 
             {isAdmin && (
               <button onClick={() => setActiveTab("admin")}
-                className={`px-4 py-2 font-semibold transition-colors ${
+                className={`px-3 sm:px-4 py-2 text-sm sm:text-base font-semibold transition-colors ${
                   activeTab === "admin"
                     ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400"
                     : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
@@ -184,20 +202,23 @@ function App() {
                     onAddToCart={handleAddToCart}
                     isAdmin={isAdmin}
                   />
-                  </div>
+                </div>
                 {!isAdmin && (
-                  <CartSidebar
-                    showCart={showCart}
-                    cart={cart}
-                    total={total}
-                    isPlacingOrder={isPlacingOrder}
-                    onClose={() => setShowCart(false)}
-                    onRemoveItem={removeFromCart}
-                    onUpdateQuantity={updateQuantity}
-                    onPlaceOrder={handlePlaceOrder}
-                    onClearCart={clearCart}
-                    isAdmin={isAdmin}
-                  />
+                  <div className="hidden md:block">
+                    <CartSidebar
+                      variant="sidebar"
+                      showCart={showCart}
+                      cart={cart}
+                      total={total}
+                      isPlacingOrder={isPlacingOrder}
+                      onClose={() => setShowCart(false)}
+                      onRemoveItem={removeFromCart}
+                      onUpdateQuantity={updateQuantity}
+                      onPlaceOrder={handlePlaceOrder}
+                      onClearCart={clearCart}
+                      isAdmin={isAdmin}
+                    />
+                  </div>
                 )}
               </>
             )}

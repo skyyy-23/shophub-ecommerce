@@ -8,15 +8,17 @@ function ProductGrid({
   onEdit,
   onDelete,
   onAddToCart,
-  isAdmin = false,
+  isAdmin = true,
 }) {
   return (
-    <section>
-      <div className="flex items-center justify-between mb-2">
-        <h2 className="text-3xl font-bold text-gray-800 dark:text-white">Products</h2>
+    <section className="space-y-3 sm:space-y-4">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white leading-tight">
+          Products
+        </h2>
 
         {isFetching && (
-          <div className="inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+          <div className="inline-flex items-center gap-2 text-xs sm:text-sm text-gray-600 dark:text-gray-300">
             <Spinner sizeClass="h-4 w-4" />
             Loading products...
           </div>
@@ -37,11 +39,10 @@ function ProductGrid({
           </p>
         </div>
       ) : (
-        <div className="overflow-auto h-[65vh]">
-          <div className="overflow-auto h-[100%]">
-            <div
-              className={`grid grid-cols-1 ${isAdmin ? "md:grid-cols-5" : "md:grid-cols-4"} gap-3 p-5`}
-            >
+        <div className="overflow-visible md:overflow-auto md:max-h-[70vh]">
+          <div
+            className={`grid ${isAdmin? "lg:grid-cols-5":"lg:grid-cols-3"} ${isAdmin ? "md:grid-cols-5" : "md:grid-cols-3"} gap-3 sm:gap-4 p-2 sm:p-4`}
+          >
             {products.map((product) => (
               <ProductCard
                 key={product.id}
@@ -54,7 +55,6 @@ function ProductGrid({
                 onAddToCart={onAddToCart}
               />
             ))}
-            </div>
           </div>
         </div>
       )}

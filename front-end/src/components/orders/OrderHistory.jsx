@@ -130,10 +130,10 @@ function OrderHistory({ userId }) {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">My Orders</h2>
-        <p className="text-gray-600 dark:text-gray-400">Track and manage your purchases</p>
+    <div className="space-y-4 sm:space-y-6">
+      <div className="text-center mb-6 sm:mb-8">
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">My Orders</h2>
+        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">Track and manage your purchases</p>
       </div>
 
       {currentOrders.map((order) => {
@@ -151,24 +151,24 @@ function OrderHistory({ userId }) {
           >
             {/* Order Header */}
             <div
-              className={`p-6 cursor-pointer ${config.bgColor} transition-colors`}
+              className={`p-4 sm:p-6 cursor-pointer ${config.bgColor} transition-colors`}
               onClick={() => toggleOrderExpansion(order.id)}
             >
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-4">
-                  <div className={`p-3 rounded-full ${config.color} shadow-lg`}>
+                  <div className={`p-2.5 sm:p-3 rounded-full ${config.color} shadow-lg`}>
                     <StatusIcon className="text-xl" />
                   </div>
                   <div>
                     <div className="flex items-center gap-2 mb-1">
-                      <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                      <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
                         Order #{order.id}
                       </h3>
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${config.color} shadow-sm`}>
+                      <span className={`px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-semibold ${config.color} shadow-sm`}>
                         {config.label}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                       {new Date(order.created_at).toLocaleDateString('en-US', {
                         year: 'numeric',
                         month: 'long',
@@ -178,12 +178,12 @@ function OrderHistory({ userId }) {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4">
-                  <div className="text-right">
-                    <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                <div className="flex flex-col items-start sm:items-end gap-2 sm:flex-row sm:items-center sm:gap-4">
+                  <div className="text-left sm:text-right">
+                    <p className="text-xl sm:text-2xl font-bold text-blue-600 dark:text-blue-400">
                       {formatPrice(order.total_price)}
                     </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                       {itemCount} item{itemCount !== 1 ? 's' : ''}
                     </p>
                   </div>
@@ -196,10 +196,10 @@ function OrderHistory({ userId }) {
 
             {/* Order Details */}
             {isExpanded && (
-              <div className="px-6 pb-6 space-y-6">
+              <div className="px-4 sm:px-6 pb-6 space-y-5 sm:space-y-6">
                 {/* Order Items */}
                 <div>
-                  <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                  <h4 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4 flex items-center gap-2">
                     <FiShoppingBag className="text-blue-500" />
                     Order Items
                   </h4>
@@ -207,7 +207,7 @@ function OrderHistory({ userId }) {
                     {order.order_items?.map((item) => (
                       <div
                         key={item.id}
-                        className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg"
+                        className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-gray-50 dark:bg-gray-700 rounded-lg"
                       >
                         <div className="flex items-center gap-3">
                           {item.product?.image ? (
@@ -222,19 +222,19 @@ function OrderHistory({ userId }) {
                             </div>
                           )}
                           <div>
-                            <p className="font-semibold text-gray-900 dark:text-white">
+                            <p className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base">
                               {item.product?.name}
                             </p>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                               Quantity: {item.quantity}
                             </p>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <p className="font-bold text-blue-600 dark:text-blue-400">
+                        <div className="text-left sm:text-right">
+                          <p className="font-bold text-blue-600 dark:text-blue-400 text-sm sm:text-base">
                             {formatPrice(item.price * item.quantity)}
                           </p>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                          <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                             {formatPrice(item.price)} each
                           </p>
                         </div>
@@ -246,7 +246,7 @@ function OrderHistory({ userId }) {
                 {/* Tracking Timeline */}
                 {order.tracking && order.tracking.length > 0 && (
                   <div>
-                    <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                    <h4 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4 flex items-center gap-2">
                       <FiTruck className="text-blue-500" />
                       Order Tracking
                     </h4>
@@ -266,16 +266,16 @@ function OrderHistory({ userId }) {
                               )}
                             </div>
                             <div className="flex-1 pb-4">
-                              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                                <p className="font-semibold text-gray-900 dark:text-white mb-1">
+                              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 sm:p-4">
+                                <p className="font-semibold text-gray-900 dark:text-white mb-1 text-sm sm:text-base">
                                   {trackConfig.label}
                                 </p>
                                 {track.description && (
-                                  <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+                                  <p className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 mb-2">
                                     {track.description}
                                   </p>
                                 )}
-                                <p className="text-xs text-gray-500 dark:text-gray-400">
+                                <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
                                   {new Date(track.created_at).toLocaleString('en-US', {
                                     year: 'numeric',
                                     month: 'short',
@@ -300,8 +300,8 @@ function OrderHistory({ userId }) {
 
       {/* Pagination Controls */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mt-8">
-          <div className="text-sm text-gray-600 dark:text-gray-400">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 sm:p-6 mt-6 sm:mt-8">
+          <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
             Showing {startIndex + 1}-{Math.min(endIndex, orders.length)} of {orders.length} orders
           </div>
 
