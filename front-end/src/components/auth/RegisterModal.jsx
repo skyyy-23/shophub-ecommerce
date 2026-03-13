@@ -3,7 +3,14 @@ import { FiMail, FiLock, FiEye, FiEyeOff, FiUser, FiUserPlus, FiX } from "react-
 import { apiEndpoints } from "../../config/api";
 import { wasRemembered } from "../../services/authStorage";
 
-function RegisterModal({ show, onClose, onRegister, onSwitchToLogin }) {
+function RegisterModal({
+  show,
+  onClose,
+  onRegister,
+  onSwitchToLogin,
+  mode = "user",
+}) {
+  const isAdminMode = mode === "admin";
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -14,8 +21,10 @@ function RegisterModal({ show, onClose, onRegister, onSwitchToLogin }) {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const [rememberMe, setRememberMe] = useState(() => wasRemembered());
-``
+  const [rememberMe, setRememberMe] = useState(() =>
+    wasRemembered(isAdminMode ? "admin" : "user")
+  );
+
   const handleChange = (e) => {
     setForm({
       ...form,
@@ -39,16 +48,18 @@ function RegisterModal({ show, onClose, onRegister, onSwitchToLogin }) {
         name: form.name.trim(),
         email: form.email.trim(),
         password: form.password,
-        role: "user",
       };
 
-      const response = await fetch(apiEndpoints.register, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
+      const response = await fetch(
+        isAdminMode ? apiEndpoints.adminRegister : apiEndpoints.register,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        }
+      );
 
       const data = await response.json().catch(() => null);
 
@@ -57,19 +68,28 @@ function RegisterModal({ show, onClose, onRegister, onSwitchToLogin }) {
           setError("Unexpected response from server.");
           return;
         }
-        onRegister({ user: data.user, token: data.token, remember: rememberMe });
+        onRegister({
+          user: data.user,
+          token: data.token,
+          remember: rememberMe,
+          scope: isAdminMode ? "admin" : "user",
+        });
         onClose();
       } else {
-        // Handle validation errors properly
         if (data?.errors) {
-          const errorMessages = Object.values(data.errors).flat().join(', ');
+          const errorMessages = Object.values(data.errors).flat().join(", ");
           setError(errorMessages);
+        } else if (response.status === 403) {
+          const fallbackMessage = isAdminMode
+            ? "Admin access required."
+            : "Access denied.";
+          setError(data?.message || fallbackMessage);
         } else {
           setError(data?.message || "Registration failed");
         }
       }
-    } catch (error) {
-      setError("Network error. Please try again.");
+    } catch (e) {
+      setError("Network error. Please try again." + e.message);
     } finally {
       setIsLoading(false);
     }
@@ -88,10 +108,12 @@ function RegisterModal({ show, onClose, onRegister, onSwitchToLogin }) {
               </div>
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white leading-snug">
-                  Create Account
+                  {isAdminMode ? "Create Admin Account" : "Create Account"}
                 </h2>
                 <p className="text-gray-600 dark:text-gray-400 text-sm">
-                  Join us today
+                  {isAdminMode
+                    ? "Register a new admin account"
+                    : "Join us today"}
                 </p>
               </div>
             </div>
@@ -232,17 +254,19 @@ function RegisterModal({ show, onClose, onRegister, onSwitchToLogin }) {
             </button>
           </form>
 
-          <div className="mt-6 text-center">
-            <p className="text-gray-600 dark:text-gray-400">
-              Already have an account?{" "}
-              <button
-                onClick={onSwitchToLogin}
-                className="text-green-600 hover:text-green-700 font-medium"
-              >
-                Sign in
-              </button>
-            </p>
-          </div>
+          {onSwitchToLogin && (
+            <div className="mt-6 text-center">
+              <p className="text-gray-600 dark:text-gray-400">
+                {isAdminMode ? "Already have an admin account?" : "Already have an account?"}{" "}
+                <button
+                  onClick={onSwitchToLogin}
+                  className="text-green-600 hover:text-green-700 font-medium"
+                >
+                  Sign in
+                </button>
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>

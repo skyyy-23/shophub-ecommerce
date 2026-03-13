@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import CartSidebar from "./components/cart/CartSidebar";
 import CartNotification from "./components/common/CartNotification";
 import AppHeader from "./components/layout/AppHeader";
@@ -25,6 +25,17 @@ function App() {
   const [showAdminRegisterModal, setShowAdminRegisterModal] = useState(false);
   const { darkMode, toggleDarkMode } = useDarkMode();
   const { user, login, logout, isAdmin } = useAuth();
+
+  useEffect(() => {
+    if (!user && activeTab !== "products") {
+      setActiveTab("products");
+      return;
+    }
+
+    if (!isAdmin && activeTab === "admin") {
+      setActiveTab("products");
+    }
+  }, [user, isAdmin, activeTab]);
 
   const {
     products,
@@ -124,7 +135,7 @@ function App() {
               Products
             </button>
 
-            {!isAdmin && (
+            {user && !isAdmin && (
             <button onClick={() => setActiveTab("orders")}
               className={`px-4 py-2 font-semibold transition-colors ${
                 activeTab === "orders"

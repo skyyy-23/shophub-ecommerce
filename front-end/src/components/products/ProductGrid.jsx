@@ -38,8 +38,10 @@ function ProductGrid({
         </div>
       ) : (
         <div className="overflow-auto h-[65vh]">
-        <div className="overflow-auto h-[100%]">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-3 p-5">
+          <div className="overflow-auto h-[100%]">
+            <div
+              className={`grid grid-cols-1 ${isAdmin ? "md:grid-cols-5" : "md:grid-cols-4"} gap-3 p-5`}
+            >
             {products.map((product) => (
               <ProductCard
                 key={product.id}
@@ -52,8 +54,8 @@ function ProductGrid({
                 onAddToCart={onAddToCart}
               />
             ))}
+            </div>
           </div>
-        </div>
         </div>
       )}
     </section>

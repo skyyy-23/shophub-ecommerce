@@ -98,7 +98,7 @@ function LoginModal({
             </div>
             <div>
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white leading-snug">
-                {isAdminMode ? "Admin Sign In" : "Welcome Back"}
+                {isAdminMode ? "Welcome back, Admin!" : "Welcome Back"}
               </h2>
               <p className="text-gray-600 dark:text-gray-400 text-sm">
                 {isAdminMode
