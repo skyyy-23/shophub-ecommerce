@@ -178,7 +178,7 @@ function OrderHistory({ userId }) {
                   </div>
                 </div>
 
-                <div className="flex flex-col items-start sm:items-end gap-2 sm:flex-row sm:items-center sm:gap-4">
+                <div className="flex flex-col items-start gap-2 sm:flex-row sm:gap-4">
                   <div className="text-left sm:text-right">
                     <p className="text-xl sm:text-2xl font-bold text-blue-600 dark:text-blue-400">
                       {formatPrice(order.total_price)}

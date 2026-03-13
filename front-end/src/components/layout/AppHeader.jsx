@@ -48,7 +48,7 @@ function AppHeader({
               onClick={onToggleCart}
               className="relative p-1.5 sm:p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
             >
-              <FiShoppingCart className="text-xl sm:text-2xl" />
+              <FiShoppingCart className="text-xl sm:text-2xl text-green-400" />
               {cartCount > 0 && (
                 <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                   {cartCount}
@@ -102,7 +102,7 @@ function AppHeader({
               onClick={onToggleTheme}
               className="p-1.5 sm:p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-lg sm:text-xl"
             >
-              {darkMode ? <FiSun /> : <FiMoon />}
+              {darkMode ? <FiSun className="text-white" /> : <FiMoon className="text-black-400" />}
             </button>
           </div>
         </div>
