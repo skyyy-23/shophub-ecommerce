@@ -1,12 +1,23 @@
 import { useState } from "react";
 import { FiMail, FiLock, FiEye, FiEyeOff, FiUser, FiX } from "react-icons/fi";
 import { apiEndpoints } from "../../config/api";
+import { wasRemembered } from "../../services/authStorage";
 
-function LoginModal({ show, onClose, onLogin, onSwitchToRegister }) {
+function LoginModal({
+  show,
+  onClose,
+  onLogin,
+  onSwitchToRegister,
+  mode = "user",
+}) {
+  const isAdminMode = mode === "admin";
   const [form, setForm] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [rememberMe, setRememberMe] = useState(() =>
+    wasRemembered(isAdminMode ? "admin" : "user")
+  );
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -18,34 +29,53 @@ function LoginModal({ show, onClose, onLogin, onSwitchToRegister }) {
     setError("");
 
     try {
-      console.log("Attempting login to:", apiEndpoints.login);
-
-      const response = await fetch(apiEndpoints.login, {
+      const payload = {
+        email: form.email.trim(),
+        password: form.password,
+      };
+      const response = await fetch(
+        isAdminMode ? apiEndpoints.adminLogin : apiEndpoints.login,
+        {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-        credentials: "include",
-      });
+        body: JSON.stringify(payload),
+        }
+      );
 
-      console.log("Response status:", response.status);
+      const data = await response.json().catch(() => null);
 
-      let data;
-      try {
-        data = await response.json();
-        console.log("Response data:", data);
-      } catch (parseError) {
-        console.error("Failed to parse response:", parseError);
-        setError("Invalid response from server");
-        return;
-      }
-
-      if (response.ok && data.success) {
-        localStorage.setItem("auth_token", data.token);
-        localStorage.setItem("user", JSON.stringify(data.user));
-        onLogin(data.user);
+      if (response.ok && data?.success) {
+        if (!data?.token || !data?.user) {
+          setError("Unexpected response from server.");
+          return;
+        }
+        if (isAdminMode && data.user.role !== "admin") {
+          setError("This account is not an admin.");
+          return;
+        }
+        onLogin({
+          user: data.user,
+          token: data.token,
+          remember: rememberMe,
+          scope: isAdminMode ? "admin" : "user",
+        });
         onClose();
       } else {
-        setError(data.message || "Login failed");
+        const validationErrors = data?.errors
+          ? Object.values(data.errors).flat().join(", ")
+          : null;
+        if (validationErrors) {
+          setError(validationErrors);
+        } else if (response.status === 403) {
+          const fallbackMessage = isAdminMode
+            ? "Admin access required."
+            : "Access denied.";
+          setError(data?.message || fallbackMessage);
+        } else if (response.status === 401) {
+          setError("Invalid email or password.");
+        } else {
+          setError(data?.message || "Login failed. Please try again.");
+        }
       }
     } catch (err) {
       console.error("Login error:", err);
@@ -68,10 +98,12 @@ function LoginModal({ show, onClose, onLogin, onSwitchToRegister }) {
             </div>
             <div>
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white leading-snug">
-                Welcome Back
+                {isAdminMode ? "Admin Sign In" : "Welcome Back"}
               </h2>
               <p className="text-gray-600 dark:text-gray-400 text-sm">
-                Sign in to your account
+                {isAdminMode
+                  ? "Sign in with your admin account"
+                  : "Sign in to your account"}
               </p>
             </div>
           </div>
@@ -106,6 +138,9 @@ function LoginModal({ show, onClose, onLogin, onSwitchToRegister }) {
                 onChange={handleChange}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 placeholder="Enter your email"
+                autoComplete="email"
+                autoCapitalize="none"
+                autoCorrect="off"
                 required
               />
             </div>
@@ -124,16 +159,30 @@ function LoginModal({ show, onClose, onLogin, onSwitchToRegister }) {
                 onChange={handleChange}
                 className="w-full pl-10 pr-10 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 placeholder="Enter your password"
+                autoComplete="current-password"
                 required
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                aria-label={showPassword ? "Hide password" : "Show password"}
               >
                 {showPassword ? <FiEyeOff /> : <FiEye />}
               </button>
             </div>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(event) => setRememberMe(event.target.checked)}
+                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              Keep me signed in
+            </label>
           </div>
 
           <button
@@ -150,17 +199,19 @@ function LoginModal({ show, onClose, onLogin, onSwitchToRegister }) {
         </form>
 
         {/* Footer */}
-        <div className="mt-6 text-center">
-          <p className="text-gray-600 dark:text-gray-400">
-            Don't have an account?{" "}
-            <button
-              onClick={onSwitchToRegister}
-              className="text-blue-600 hover:text-blue-700 font-medium"
-            >
-              Sign up
-            </button>
-          </p>
-        </div>
+        {onSwitchToRegister && (
+          <div className="mt-6 text-center">
+            <p className="text-gray-600 dark:text-gray-400">
+              {isAdminMode ? "Need an admin account?" : "Don't have an account?"}{" "}
+              <button
+                onClick={onSwitchToRegister}
+                className="text-blue-600 hover:text-blue-700 font-medium"
+              >
+                Sign up
+              </button>
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

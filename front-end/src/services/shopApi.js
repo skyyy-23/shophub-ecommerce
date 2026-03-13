@@ -1,7 +1,9 @@
 import axios from "axios";
+import { API_BASE_URL } from "../config/api";
+import { getAuthToken } from "./authStorage";
 
 const apiClient = axios.create({
-  baseURL: "http://127.0.0.1:8000/api",
+  baseURL: API_BASE_URL,
 });
 
 const normalizeProducts = (payload) => {
@@ -12,6 +14,8 @@ export const fetchProducts = async () => {
   const response = await apiClient.get("/products");
   return normalizeProducts(response.data);
 };
+
+const resolveToken = (token) => token || getAuthToken();
 
 export const createProduct = async (payload, token = null) => {
   const formData = new FormData();
@@ -24,8 +28,9 @@ export const createProduct = async (payload, token = null) => {
   const headers = {
     'Content-Type': 'multipart/form-data',
   };
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
+  const authToken = resolveToken(token);
+  if (authToken) {
+    headers.Authorization = `Bearer ${authToken}`;
   }
 
   const response = await apiClient.post("/products", formData, { headers });
@@ -44,8 +49,9 @@ export const updateProduct = async (id, payload, token = null) => {
   const headers = {
     'Content-Type': 'multipart/form-data',
   };
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
+  const authToken = resolveToken(token);
+  if (authToken) {
+    headers.Authorization = `Bearer ${authToken}`;
   }
 
   const response = await apiClient.post(`/products/${id}`, formData, { headers });
@@ -54,8 +60,9 @@ export const updateProduct = async (id, payload, token = null) => {
 
 export const deleteProduct = async (id, token = null) => {
   const headers = {};
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
+  const authToken = resolveToken(token);
+  if (authToken) {
+    headers.Authorization = `Bearer ${authToken}`;
   }
 
   const response = await apiClient.delete(`/products/${id}`, { headers });
@@ -64,8 +71,9 @@ export const deleteProduct = async (id, token = null) => {
 
 export const createOrder = async (payload, token = null) => {
   const headers = {};
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
+  const authToken = resolveToken(token);
+  if (authToken) {
+    headers.Authorization = `Bearer ${authToken}`;
   }
   const response = await apiClient.post("/orders", payload, { headers });
   return response.data;

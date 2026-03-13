@@ -5,6 +5,7 @@ import {
   fetchProducts,
   updateProduct,
 } from "../services/shopApi";
+import { getAuthToken } from "../services/authStorage";
 
 const initialForm = {
   name: "",
@@ -88,7 +89,7 @@ export const useProducts = () => {
     setIsSubmittingProduct(true);
 
     try {
-      const token = localStorage.getItem("auth_token");
+      const token = getAuthToken();
       if (editingId) {
         await updateProduct(editingId, form, token);
       } else {
@@ -123,7 +124,7 @@ export const useProducts = () => {
     setDeletingProductId(productId);
 
     try {
-      const token = localStorage.getItem("auth_token");
+      const token = getAuthToken();
       await deleteProduct(productId, token);
       await refreshProducts();
     } catch (error) {

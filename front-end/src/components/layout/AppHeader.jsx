@@ -17,6 +17,7 @@ function AppHeader({
   onToggleCart,
   onToggleTheme,
   onLogin,
+  onAdminLogin,
   onLogout,
 }) {
   return (
@@ -77,13 +78,24 @@ function AppHeader({
                 </button>
               </div>
             ) : (
-              <button
-                onClick={onLogin}
-                className="inline-flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white font-semibold px-4 py-2 rounded-lg shadow"
-              >
-                <FiLogIn />
-                Login
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={onLogin}
+                  className="inline-flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white font-semibold px-4 py-2 rounded-lg shadow"
+                >
+                  <FiLogIn />
+                  Login
+                </button>
+                {onAdminLogin && (
+                  <button
+                    onClick={onAdminLogin}
+                    className="inline-flex items-center gap-2 bg-slate-700 hover:bg-slate-800 text-white font-semibold px-4 py-2 rounded-lg shadow"
+                  >
+                    <FiLogIn />
+                    Admin Login
+                  </button>
+                )}
+              </div>
             )}
 
             <button

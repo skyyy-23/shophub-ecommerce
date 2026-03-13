@@ -13,6 +13,7 @@ import { useDarkMode } from "./hooks/useDarkMode";
 import { useProducts } from "./hooks/useProducts";
 import { useAuth } from "./hooks/useAuth";
 import { createOrder } from "./services/shopApi";
+import { getAuthToken } from "./services/authStorage";
 
 function App() {
   const [showCart, setShowCart] = useState(false);
@@ -20,6 +21,8 @@ function App() {
   const [activeTab, setActiveTab] = useState("products"); // "products", "orders", "admin"
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
+  const [showAdminLoginModal, setShowAdminLoginModal] = useState(false);
+  const [showAdminRegisterModal, setShowAdminRegisterModal] = useState(false);
   const { darkMode, toggleDarkMode } = useDarkMode();
   const { user, login, logout, isAdmin } = useAuth();
 
@@ -75,7 +78,7 @@ function App() {
     setIsPlacingOrder(true);
 
     try {
-      const token = localStorage.getItem("auth_token");
+      const token = getAuthToken();
       await createOrder(payload, token);
       decreaseStocksAfterOrder(cart);
       alert("Order placed!");
@@ -100,6 +103,7 @@ function App() {
         onToggleCart={() => setShowCart((previous) => !previous)}
         onToggleTheme={toggleDarkMode}
         onLogin={() => setShowLoginModal(true)}
+        onAdminLogin={() => setShowAdminLoginModal(true)}
         onLogout={logout}
       />
 
@@ -206,10 +210,31 @@ function App() {
           <LoginModal
             show={showLoginModal}
             onClose={() => setShowLoginModal(false)}
-            onLogin={login}
+            onLogin={(session) => {
+              login(session);
+              if (session?.user?.role === "admin") {
+                setActiveTab("admin");
+              }
+            }}
             onSwitchToRegister={() => {
               setShowLoginModal(false);
               setShowRegisterModal(true);
+            }}
+          />
+
+          <LoginModal
+            show={showAdminLoginModal}
+            mode="admin"
+            onClose={() => setShowAdminLoginModal(false)}
+            onLogin={(session) => {
+              login(session);
+              if (session?.user?.role === "admin") {
+                setActiveTab("admin");
+              }
+            }}
+            onSwitchToRegister={() => {
+              setShowAdminLoginModal(false);
+              setShowAdminRegisterModal(true);
             }}
           />
 
@@ -220,6 +245,17 @@ function App() {
             onSwitchToLogin={() => {
               setShowRegisterModal(false);
               setShowLoginModal(true);
+            }}
+          />
+
+          <RegisterModal
+            show={showAdminRegisterModal}
+            mode="admin"
+            onClose={() => setShowAdminRegisterModal(false)}
+            onRegister={login}
+            onSwitchToLogin={() => {
+              setShowAdminRegisterModal(false);
+              setShowAdminLoginModal(true);
             }}
           />
         </div>

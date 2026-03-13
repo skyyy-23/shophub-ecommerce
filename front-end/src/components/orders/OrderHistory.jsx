@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { FiPackage, FiTruck, FiCheckCircle, FiClock, FiChevronDown, FiChevronUp, FiShoppingBag, FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { formatPrice } from "../../utils/formatPrice";
+import { apiEndpoints } from "../../config/api";
+import { getAuthToken } from "../../services/authStorage";
 
 const statusConfig = {
   pending: {
@@ -53,10 +55,15 @@ function OrderHistory({ userId }) {
 
   const fetchUserOrders = async () => {
     try {
+      if (!userId) {
+        setOrders([]);
+        setLoading(false);
+        return;
+      }
       setLoading(true);
-      const token = localStorage.getItem("auth_token");
+      const token = getAuthToken();
       const response = await fetch(
-        `http://127.0.0.1:8000/api/users/${userId}/orders`,
+        apiEndpoints.userOrders(userId),
         {
           headers: {
             "Authorization": `Bearer ${token}`,

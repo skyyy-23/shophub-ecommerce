@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { FiMail, FiLock, FiEye, FiEyeOff, FiUser, FiUserPlus, FiX } from "react-icons/fi";
 import { apiEndpoints } from "../../config/api";
+import { wasRemembered } from "../../services/authStorage";
 
 function RegisterModal({ show, onClose, onRegister, onSwitchToLogin }) {
   const [form, setForm] = useState({
@@ -8,13 +9,13 @@ function RegisterModal({ show, onClose, onRegister, onSwitchToLogin }) {
     email: "",
     password: "",
     confirmPassword: "",
-    role: "user",
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-
+  const [rememberMe, setRememberMe] = useState(() => wasRemembered());
+``
   const handleChange = (e) => {
     setForm({
       ...form,
@@ -34,33 +35,37 @@ function RegisterModal({ show, onClose, onRegister, onSwitchToLogin }) {
     }
 
     try {
+      const payload = {
+        name: form.name.trim(),
+        email: form.email.trim(),
+        password: form.password,
+        role: "user",
+      };
+
       const response = await fetch(apiEndpoints.register, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          name: form.name,
-          email: form.email,
-          password: form.password,
-          role: form.role,
-        }),
+        body: JSON.stringify(payload),
       });
 
-      const data = await response.json();
+      const data = await response.json().catch(() => null);
 
-      if (data.success) {
-        localStorage.setItem("auth_token", data.token);
-        localStorage.setItem("user", JSON.stringify(data.user));
-        onRegister(data.user);
+      if (response.ok && data?.success) {
+        if (!data?.token || !data?.user) {
+          setError("Unexpected response from server.");
+          return;
+        }
+        onRegister({ user: data.user, token: data.token, remember: rememberMe });
         onClose();
       } else {
         // Handle validation errors properly
-        if (data.errors) {
+        if (data?.errors) {
           const errorMessages = Object.values(data.errors).flat().join(', ');
           setError(errorMessages);
         } else {
-          setError(data.message || "Registration failed");
+          setError(data?.message || "Registration failed");
         }
       }
     } catch (error) {
@@ -119,6 +124,7 @@ function RegisterModal({ show, onClose, onRegister, onSwitchToLogin }) {
                   onChange={handleChange}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   placeholder="Enter your full name"
+                  autoComplete="name"
                   required
                 />
               </div>
@@ -137,6 +143,9 @@ function RegisterModal({ show, onClose, onRegister, onSwitchToLogin }) {
                   onChange={handleChange}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   placeholder="Enter your email"
+                  autoComplete="email"
+                  autoCapitalize="none"
+                  autoCorrect="off"
                   required
                 />
               </div>
@@ -155,12 +164,15 @@ function RegisterModal({ show, onClose, onRegister, onSwitchToLogin }) {
                   onChange={handleChange}
                   className="w-full pl-10 pr-10 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   placeholder="Create a password"
+                  autoComplete="new-password"
+                  minLength={8}
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? <FiEyeOff /> : <FiEye />}
                 </button>
@@ -180,12 +192,15 @@ function RegisterModal({ show, onClose, onRegister, onSwitchToLogin }) {
                   onChange={handleChange}
                   className="w-full pl-10 pr-10 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   placeholder="Confirm your password"
+                  autoComplete="new-password"
+                  minLength={8}
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                  aria-label={showConfirmPassword ? "Hide password" : "Show password"}
                 >
                   {showConfirmPassword ? <FiEyeOff /> : <FiEye />}
                 </button>
@@ -193,18 +208,15 @@ function RegisterModal({ show, onClose, onRegister, onSwitchToLogin }) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Account Type
+              <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(event) => setRememberMe(event.target.checked)}
+                  className="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500"
+                />
+                Keep me signed in
               </label>
-              <select
-                name="role"
-                value={form.role}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              >
-                <option value="user">Customer</option>
-                <option value="admin">Administrator</option>
-              </select>
             </div>
 
             <button

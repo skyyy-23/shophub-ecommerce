@@ -1,4 +1,10 @@
 import { createContext, useContext, useState, useEffect } from "react";
+import { apiEndpoints } from "../config/api";
+import {
+  clearAuthSession,
+  getAuthSession,
+  persistAuthSession,
+} from "../services/authStorage";
 
 const AuthContext = createContext();
 
@@ -15,32 +21,86 @@ export function AuthProvider({ children }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is logged in on app start
-    const token = localStorage.getItem("auth_token");
-    const savedUser = localStorage.getItem("user");
+    let isMounted = true;
 
-    if (token && savedUser) {
-      try {
-        setUser(JSON.parse(savedUser));
-      } catch (error) {
-        // Invalid user data, clear storage
-        localStorage.removeItem("auth_token");
-        localStorage.removeItem("user");
+    const initializeAuth = async () => {
+      const { token, user: storedUser, remember, scope } = getAuthSession();
+
+      if (storedUser && isMounted) {
+        setUser(storedUser);
       }
-    }
 
-    setIsLoading(false);
+      if (!token) {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+        return;
+      }
+
+      try {
+        const response = await fetch(apiEndpoints.user, {
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        const data = await response.json().catch(() => null);
+
+        if (response.ok && data?.user) {
+          if (isMounted) {
+            setUser(data.user);
+          }
+          persistAuthSession({ token, user: data.user, remember, scope });
+        } else if (response.status === 401 || response.status === 419) {
+          clearAuthSession(scope);
+          if (isMounted) {
+            setUser(null);
+          }
+        }
+      } catch (error) {
+        // Keep existing session on network/parse errors.
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    initializeAuth();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  const login = (userData) => {
-    setUser(userData);
+  const login = (session) => {
+    if (!session) {
+      return;
+    }
+
+    if (session.token && session.user) {
+      persistAuthSession({
+        token: session.token,
+        user: session.user,
+        remember: session.remember,
+        scope: session.scope,
+      });
+      setUser(session.user);
+      return;
+    }
+
+    setUser(session);
   };
 
   const logout = async () => {
+    let scope = "user";
     try {
-      const token = localStorage.getItem("auth_token");
+      const session = getAuthSession();
+      scope = session.scope || "user";
+      const token = session.token;
       if (token) {
-        await fetch("http://127.0.0.1:8000/api/logout", {
+        await fetch(apiEndpoints.logout, {
           method: "POST",
           headers: {
             "Authorization": `Bearer ${token}`,
@@ -51,8 +111,7 @@ export function AuthProvider({ children }) {
     } catch (error) {
       console.error("Logout error:", error);
     } finally {
-      localStorage.removeItem("auth_token");
-      localStorage.removeItem("user");
+      clearAuthSession(scope);
       setUser(null);
     }
   };

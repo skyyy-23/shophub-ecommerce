@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { FiEdit, FiCheck, FiX, FiPackage, FiTruck, FiCheckCircle, FiXCircle, FiClock, FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { formatPrice } from "../../utils/formatPrice";
+import { apiEndpoints } from "../../config/api";
+import { getAuthToken } from "../../services/authStorage";
 
 const statusConfig = {
   pending: {
@@ -55,8 +57,8 @@ function AdminOrderPanel() {
   const fetchAllOrders = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem("auth_token");
-      const response = await fetch("http://127.0.0.1:8000/api/admin/orders", {
+      const token = getAuthToken();
+      const response = await fetch(apiEndpoints.adminOrders, {
         headers: {
           "Authorization": `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -83,9 +85,9 @@ function AdminOrderPanel() {
 
     setSaving(true);
     try {
-      const token = localStorage.getItem("auth_token");
+      const token = getAuthToken();
       const response = await fetch(
-        `http://127.0.0.1:8000/api/orders/${orderId}/tracking`,
+        apiEndpoints.orderTracking(orderId),
         {
           method: "POST",
           headers: {
