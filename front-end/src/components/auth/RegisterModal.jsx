@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { FiMail, FiLock, FiEye, FiEyeOff, FiUser, FiUserPlus, FiX } from "react-icons/fi";
-import { apiEndpoints } from "../../config/api";
 import { wasRemembered } from "../../services/authStorage";
+import { registerUser } from "../../services/shopApi";
 
 function RegisterModal({
   show,
@@ -48,48 +48,39 @@ function RegisterModal({
         name: form.name.trim(),
         email: form.email.trim(),
         password: form.password,
+        remember: rememberMe,
       };
 
-      const response = await fetch(
-        isAdminMode ? apiEndpoints.adminRegister : apiEndpoints.register,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(payload),
-        }
-      );
+      if (isAdminMode) {
+        setError("Admin account creation is no longer available from the public app.");
+        return;
+      }
 
-      const data = await response.json().catch(() => null);
+      const data = await registerUser(payload);
 
-      if (response.ok && data?.success) {
-        if (!data?.token || !data?.user) {
+      if (data?.success) {
+        if (!data?.user) {
           setError("Unexpected response from server.");
           return;
         }
         onRegister({
           user: data.user,
-          token: data.token,
           remember: rememberMe,
-          scope: isAdminMode ? "admin" : "user",
+          scope: "user",
         });
         onClose();
-      } else {
-        if (data?.errors) {
-          const errorMessages = Object.values(data.errors).flat().join(", ");
-          setError(errorMessages);
-        } else if (response.status === 403) {
-          const fallbackMessage = isAdminMode
-            ? "Admin access required."
-            : "Access denied.";
-          setError(data?.message || fallbackMessage);
-        } else {
-          setError(data?.message || "Registration failed");
-        }
       }
     } catch (e) {
-      setError("Network error. Please try again." + e.message);
+      const data = e.response?.data;
+
+      if (data?.errors) {
+        const errorMessages = Object.values(data.errors).flat().join(", ");
+        setError(errorMessages);
+      } else if (e.response?.status === 403) {
+        setError(data?.message || "Access denied.");
+      } else {
+        setError(data?.message || `Network error. Please try again. ${e.message}`);
+      }
     } finally {
       setIsLoading(false);
     }

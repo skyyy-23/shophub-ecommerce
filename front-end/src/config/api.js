@@ -1,13 +1,28 @@
-// Normalize API base so production always targets the /api namespace
-const normalizeBase = (value) => {
-  const trimmed = (value || '').replace(/\/+$/, '');
-  return trimmed.endsWith('/api') ? trimmed : `${trimmed}/api`;
+const trimTrailingSlash = (value) => (value || "").replace(/\/+$/, "");
+
+const normalizeApiBase = (value) => {
+  const trimmed = trimTrailingSlash(value);
+  return trimmed.endsWith("/api") ? trimmed : `${trimmed}/api`;
 };
 
-// In dev, Vite proxy handles /api; in prod, ensure /api is present even if env omits it
+const normalizeApiOrigin = (value) =>
+  trimTrailingSlash(value).replace(/\/api$/, "");
+
+const defaultApiOrigin =
+  typeof window !== "undefined" ? window.location.origin : "http://127.0.0.1:8000";
+
+export const API_ORIGIN = import.meta.env.DEV
+  ? ""
+  : normalizeApiOrigin(import.meta.env.VITE_API_URL || defaultApiOrigin);
+
+// In dev, Vite proxy handles /api. In prod, normalize absolute API URLs.
 export const API_BASE_URL = import.meta.env.DEV
-  ? '/api'
-  : normalizeBase(import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000');
+  ? "/api"
+  : normalizeApiBase(import.meta.env.VITE_API_URL || defaultApiOrigin);
+
+export const CSRF_COOKIE_URL = import.meta.env.DEV
+  ? "/sanctum/csrf-cookie"
+  : `${API_ORIGIN}/sanctum/csrf-cookie`;
 
 export const apiEndpoints = {
   login: `${API_BASE_URL}/login`,

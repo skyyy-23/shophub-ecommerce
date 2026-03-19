@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
@@ -12,12 +13,8 @@ class ProductController extends Controller
      * Display a listing of the resource.
      */
     public function index()
-    {   
-        $products = Product::all();
-        return response()->json($products)
-            ->header('Access-Control-Allow-Origin', '*')
-            ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE')
-            ->header('Access-Control-Allow-Headers', 'Content-Type');
+    {
+        return response()->json(Product::all());
     }
 
     /**
@@ -36,13 +33,11 @@ class ProductController extends Controller
         $data = $validated;
 
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('products', 'public');
-            $data['image'] = env('APP_URL') . '/storage/' . $imagePath;
-            \Log::info('Image saved: ' . $data['image']);
+            $data['image'] = $this->storeProductImage($request);
         }
 
         $product = Product::create($data);
-        \Log::info('Product created:', $product->toArray());
+
         return response()->json($product, 201);
     }
 
@@ -70,15 +65,8 @@ class ProductController extends Controller
         $data = $validated;
 
         if ($request->hasFile('image')) {
-            // Delete old image if exists
-            if ($product->image) {
-                $oldImagePath = str_replace(env('APP_URL'), '', $product->image);
-                if (file_exists(public_path($oldImagePath))) {
-                    unlink(public_path($oldImagePath));
-                }
-            }
-            $imagePath = $request->file('image')->store('products', 'public');
-            $data['image'] = env('APP_URL') . '/storage/' . $imagePath;
+            $this->deleteProductImage($product->image);
+            $data['image'] = $this->storeProductImage($request);
         }
 
         $product->update($data);
@@ -90,9 +78,40 @@ class ProductController extends Controller
      */
     public function destroy(Product $product)
     {
+        $this->deleteProductImage($product->image);
         $product->delete();
-        return response()->json([
-            'message' => 'Product deleted successfully'
-            ], 204);
+        return response()->noContent();
+    }
+
+    private function storeProductImage(Request $request): string
+    {
+        $imagePath = $request->file('image')->store('products', 'public');
+
+        return url(Storage::url($imagePath));
+    }
+
+    private function deleteProductImage(?string $imageUrl): void
+    {
+        $storagePath = $this->resolveStoragePath($imageUrl);
+
+        if ($storagePath && Storage::disk('public')->exists($storagePath)) {
+            Storage::disk('public')->delete($storagePath);
+        }
+    }
+
+    private function resolveStoragePath(?string $imageUrl): ?string
+    {
+        if (! $imageUrl) {
+            return null;
+        }
+
+        $path = parse_url($imageUrl, PHP_URL_PATH) ?: $imageUrl;
+        $normalizedPath = ltrim($path, '/');
+
+        if (str_starts_with($normalizedPath, 'storage/')) {
+            return substr($normalizedPath, strlen('storage/'));
+        }
+
+        return $normalizedPath;
     }
 }

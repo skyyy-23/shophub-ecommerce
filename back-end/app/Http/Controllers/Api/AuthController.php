@@ -16,7 +16,8 @@ class AuthController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8'
+            'password' => 'required|string|min:8',
+            'remember' => 'sometimes|boolean',
         ]);
 
         if ($validator->fails()) {
@@ -31,16 +32,16 @@ class AuthController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'role' => 'user'
+            'role' => 'user',
         ]);
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+        Auth::login($user, $request->boolean('remember'));
+        $request->session()->regenerate();
 
         return response()->json([
             'success' => true,
             'message' => 'User registered successfully',
             'user' => $user,
-            'token' => $token
         ], 201);
     }
 
@@ -64,16 +65,13 @@ class AuthController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'role' => 'admin'
+            'role' => 'admin',
         ]);
-
-        $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
             'success' => true,
             'message' => 'Admin registered successfully',
             'user' => $user,
-            'token' => $token
         ], 201);
     }
 
@@ -81,7 +79,8 @@ class AuthController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'email' => 'required|string|email',
-            'password' => 'required|string'
+            'password' => 'required|string',
+            'remember' => 'sometimes|boolean',
         ]);
 
         if ($validator->fails()) {
@@ -92,28 +91,30 @@ class AuthController extends Controller
             ], 422);
         }
 
-        if (!Auth::attempt($request->only('email', 'password'))) {
+        if (!Auth::attempt($request->only('email', 'password'), $request->boolean('remember'))) {
             return response()->json([
                 'success' => false,
-                'message' => 'Invalid credentials'
+                'message' => 'Invalid credentials',
             ], 401);
         }
 
-        $user = Auth::user();
+        $request->session()->regenerate();
+        $user = $request->user();
+
         if ($user->role === 'admin') {
-            Auth::logout();
+            Auth::guard('web')->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
             return response()->json([
                 'success' => false,
-                'message' => 'Admin accounts must use the admin login.'
+                'message' => 'Admin accounts must use the admin login.',
             ], 403);
         }
-        $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
             'success' => true,
             'message' => 'Login successful',
             'user' => $user,
-            'token' => $token
         ]);
     }
 
@@ -121,7 +122,8 @@ class AuthController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'email' => 'required|string|email',
-            'password' => 'required|string'
+            'password' => 'required|string',
+            'remember' => 'sometimes|boolean',
         ]);
 
         if ($validator->fails()) {
@@ -132,39 +134,42 @@ class AuthController extends Controller
             ], 422);
         }
 
-        if (!Auth::attempt($request->only('email', 'password'))) {
+        if (!Auth::attempt($request->only('email', 'password'), $request->boolean('remember'))) {
             return response()->json([
                 'success' => false,
-                'message' => 'Invalid credentials'
+                'message' => 'Invalid credentials',
             ], 401);
         }
 
-        $user = Auth::user();
+        $request->session()->regenerate();
+        $user = $request->user();
+
         if ($user->role !== 'admin') {
-            Auth::logout();
+            Auth::guard('web')->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
             return response()->json([
                 'success' => false,
-                'message' => 'Unauthorized. Admin access required.'
+                'message' => 'Unauthorized. Admin access required.',
             ], 403);
         }
-
-        $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
             'success' => true,
             'message' => 'Admin login successful',
             'user' => $user,
-            'token' => $token
         ]);
     }
 
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
+        Auth::guard('web')->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
         return response()->json([
             'success' => true,
-            'message' => 'Logged out successfully'
+            'message' => 'Logged out successfully',
         ]);
     }
 

@@ -1,8 +1,7 @@
-import { useState, useEffect } from "react";
-import { FiPackage, FiTruck, FiCheckCircle, FiClock, FiChevronDown, FiChevronUp, FiShoppingBag, FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import { useEffect, useEffectEvent, useState } from "react";
+import { FiPackage, FiTruck, FiCheckCircle, FiClock, FiChevronDown, FiShoppingBag, FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { formatPrice } from "../../utils/formatPrice";
-import { apiEndpoints } from "../../config/api";
-import { getAuthToken } from "../../services/authStorage";
+import { fetchUserOrders as fetchUserOrdersRequest } from "../../services/shopApi";
 
 const statusConfig = {
   pending: {
@@ -49,10 +48,6 @@ function OrderHistory({ userId }) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  useEffect(() => {
-    fetchUserOrders();
-  }, [userId]);
-
   const fetchUserOrders = async () => {
     try {
       if (!userId) {
@@ -61,17 +56,7 @@ function OrderHistory({ userId }) {
         return;
       }
       setLoading(true);
-      const token = getAuthToken();
-      const response = await fetch(
-        apiEndpoints.userOrders(userId),
-        {
-          headers: {
-            "Authorization": `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      const data = await response.json();
+      const data = await fetchUserOrdersRequest(userId);
       setOrders(data);
       setCurrentPage(1); // Reset to first page when new orders are loaded
     } catch (error) {
@@ -80,6 +65,14 @@ function OrderHistory({ userId }) {
       setLoading(false);
     }
   };
+
+  const syncOrders = useEffectEvent(() => {
+    void fetchUserOrders();
+  });
+
+  useEffect(() => {
+    syncOrders();
+  }, [userId]);
 
   const toggleOrderExpansion = (orderId) => {
     setExpandedOrder(expandedOrder === orderId ? null : orderId);

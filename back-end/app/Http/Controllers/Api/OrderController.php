@@ -27,17 +27,16 @@ class OrderController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'user_id' => 'required|exists:users,id',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|integer|min:1',
         ]);
 
-        $order = DB::transaction(function () use ($validated) {
+        $order = DB::transaction(function () use ($request, $validated) {
             $totalPrice = 0;
 
             $order = Order::create([
-                'user_id' => $validated['user_id'],
+                'user_id' => $request->user()->id,
                 'total_price' => 0,
                 'status' => 'pending',
             ]);

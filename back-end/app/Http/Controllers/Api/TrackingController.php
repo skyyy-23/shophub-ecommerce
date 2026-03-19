@@ -10,9 +10,11 @@ use Illuminate\Http\Request;
 class TrackingController extends Controller
 {
     // Get tracking history for an order
-    public function show($orderId)
+    public function show(Request $request, Order $order)
     {
-        $order = Order::with('tracking')->findOrFail($orderId);
+        $this->authorizeOrderAccess($request, $order);
+        $order->load('tracking');
+
         return response()->json([
             'order_id' => $order->id,
             'status' => $order->status,
@@ -23,8 +25,14 @@ class TrackingController extends Controller
     }
 
     // Get all user orders with tracking
-    public function userOrders($userId)
+    public function userOrders(Request $request, $userId)
     {
+        $isAdmin = $request->user()?->role === 'admin';
+
+        if (! $isAdmin && (int) $request->user()?->id !== (int) $userId) {
+            abort(403, 'You are not authorized to view these orders.');
+        }
+
         $orders = Order::where('user_id', $userId)
             ->with('tracking', 'orderItems.product')
             ->orderBy('created_at', 'desc')
@@ -34,18 +42,17 @@ class TrackingController extends Controller
     }
 
     // Update order status and create tracking record
-    public function updateStatus(Request $request, $orderId)
+    public function updateStatus(Request $request, Order $order)
     {
         $validated = $request->validate([
             'status' => 'required|in:pending,processing,shipped,delivered,cancelled',
             'description' => 'nullable|string',
         ]);
 
-        $order = Order::findOrFail($orderId);
         $order->update(['status' => $validated['status']]);
 
         OrderTracking::create([
-            'order_id' => $orderId,
+            'order_id' => $order->id,
             'status' => $validated['status'],
             'description' => $validated['description'] ?? null,
         ]);
@@ -54,5 +61,14 @@ class TrackingController extends Controller
             'message' => 'Order status updated',
             'order' => $order->load('tracking'),
         ]);
+    }
+
+    private function authorizeOrderAccess(Request $request, Order $order): void
+    {
+        $isAdmin = $request->user()?->role === 'admin';
+
+        if (! $isAdmin && $request->user()?->id !== $order->user_id) {
+            abort(403, 'You are not authorized to view this order.');
+        }
     }
 }

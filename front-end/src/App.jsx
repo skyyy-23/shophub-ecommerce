@@ -13,21 +13,18 @@ import { useDarkMode } from "./hooks/useDarkMode";
 import { useProducts } from "./hooks/useProducts";
 import { useAuth } from "./hooks/useAuth";
 import { createOrder } from "./services/shopApi";
-import { getAuthToken } from "./services/authStorage";
 
 function App() {
-  const [showCart, setShowCart] = useState(false);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
-  const [activeTab, setActiveTab] = useState("products"); // "products", "orders", "admin"
+  const [activeTab, setActiveTab] = useState("products"); // "products", "cart", "orders", "admin"
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
   const [showAdminLoginModal, setShowAdminLoginModal] = useState(false);
-  const [showAdminRegisterModal, setShowAdminRegisterModal] = useState(false);
   const { darkMode, toggleDarkMode } = useDarkMode();
   const { user, login, logout, isAdmin } = useAuth();
 
   useEffect(() => {
-    if (!user && activeTab !== "products") {
+    if (!user && (activeTab === "orders" || activeTab === "admin")) {
       setActiveTab("products");
       return;
     }
@@ -79,7 +76,6 @@ function App() {
     }
 
     const payload = {
-      user_id: user.id,
       items: cart.map((item) => ({
         product_id: item.id,
         quantity: item.quantity,
@@ -89,8 +85,7 @@ function App() {
     setIsPlacingOrder(true);
 
     try {
-      const token = getAuthToken();
-      await createOrder(payload, token);
+      await createOrder(payload);
       decreaseStocksAfterOrder(cart);
       alert("Order placed!");
       clearCart();
@@ -111,34 +106,18 @@ function App() {
         cartCount={cart.length}
         user={user}
         onOpenAddProduct={openCreateModal}
-        onToggleCart={() => setShowCart((previous) => !previous)}
+        onOpenCart={() => setActiveTab("cart")}
+        isCartActive={activeTab === "cart"}
         onToggleTheme={toggleDarkMode}
         onLogin={() => setShowLoginModal(true)}
         onAdminLogin={() => setShowAdminLoginModal(true)}
         onLogout={logout}
+        isAdmin={isAdmin}
       />
 
       <main className="relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 my-1">
           <CartNotification message={cartNotification} />
-
-          {activeTab === "products" && !isAdmin && (
-            <div className="md:hidden mb-4">
-              <CartSidebar
-                variant="inline"
-                showCart={showCart}
-                cart={cart}
-                total={total}
-                isPlacingOrder={isPlacingOrder}
-                onClose={() => setShowCart(false)}
-                onRemoveItem={removeFromCart}
-                onUpdateQuantity={updateQuantity}
-                onPlaceOrder={handlePlaceOrder}
-                onClearCart={clearCart}
-                isAdmin={isAdmin}
-              />
-            </div>
-          )}
 
           {/* Tab Navigation */}
           <div className="flex flex-wrap gap-2 sm:gap-4 mb-3 border-b border-gray-200 dark:border-gray-700">
@@ -152,6 +131,19 @@ function App() {
             >
               Products
             </button>
+
+            {!isAdmin && (
+              <button
+              onClick={() => setActiveTab("cart")}
+              className={`px-3 sm:px-4 py-2 text-sm sm:text-base font-semibold transition-colors ${
+                activeTab === "cart"
+                  ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400"
+                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
+              }`}
+            >
+              Cart{cart.length > 0 ? ` (${cart.length})` : ""}
+            </button>
+            )}
 
             {user && !isAdmin && (
             <button onClick={() => setActiveTab("orders")}
@@ -189,42 +181,35 @@ function App() {
             onSubmit={submitProduct}
           />
 
-          <div className={isAdmin ? "grid grid-cols-1 gap-8" : "grid grid-cols-1 lg:grid-cols-3 gap-8"}>
+          <div className="grid grid-cols-1 gap-8">
             {activeTab === "products" && (
-              <>
-                <div className={isAdmin ? "lg:col-span-2" : "lg:col-span-2"}> 
-                    <ProductGrid
-                    products={products}
-                    isFetching={isFetchingProducts}
-                    deletingProductId={deletingProductId}
-                    onEdit={isAdmin ? openEditModal : undefined}
-                    onDelete={isAdmin ? removeProduct : undefined}
-                    onAddToCart={handleAddToCart}
-                    isAdmin={isAdmin}
-                  />
-                </div>
-                {!isAdmin && (
-                  <div className="hidden md:block">
-                    <CartSidebar
-                      variant="sidebar"
-                      showCart={showCart}
-                      cart={cart}
-                      total={total}
-                      isPlacingOrder={isPlacingOrder}
-                      onClose={() => setShowCart(false)}
-                      onRemoveItem={removeFromCart}
-                      onUpdateQuantity={updateQuantity}
-                      onPlaceOrder={handlePlaceOrder}
-                      onClearCart={clearCart}
-                      isAdmin={isAdmin}
-                    />
-                  </div>
-                )}
-              </>
+              <ProductGrid
+                products={products}
+                isFetching={isFetchingProducts}
+                deletingProductId={deletingProductId}
+                onEdit={isAdmin ? openEditModal : undefined}
+                onDelete={isAdmin ? removeProduct : undefined}
+                onAddToCart={handleAddToCart}
+                isAdmin={isAdmin}
+              />
+            )}
+
+            {activeTab === "cart" && (
+              <CartSidebar
+                variant="page"
+                cart={cart}
+                total={total}
+                isPlacingOrder={isPlacingOrder}
+                onRemoveItem={removeFromCart}
+                onUpdateQuantity={updateQuantity}
+                onPlaceOrder={handlePlaceOrder}
+                onClearCart={clearCart}
+                onContinueShopping={() => setActiveTab("products")}
+              />
             )}
 
             {activeTab === "orders" && !isAdmin && (
-              <div className="lg:col-span-3">
+              <div>
                 <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
                   <OrderHistory userId={user?.id} />
                 </div>
@@ -232,7 +217,7 @@ function App() {
             )}
 
             {activeTab === "admin" && isAdmin && (
-              <div className="lg:col-span-3">
+              <div>
                 <AdminOrderPanel />
               </div>
             )}
@@ -264,10 +249,6 @@ function App() {
                 setActiveTab("admin");
               }
             }}
-            onSwitchToRegister={() => {
-              setShowAdminLoginModal(false);
-              setShowAdminRegisterModal(true);
-            }}
           />
 
           <RegisterModal
@@ -280,16 +261,6 @@ function App() {
             }}
           />
 
-          <RegisterModal
-            show={showAdminRegisterModal}
-            mode="admin"
-            onClose={() => setShowAdminRegisterModal(false)}
-            onRegister={login}
-            onSwitchToLogin={() => {
-              setShowAdminRegisterModal(false);
-              setShowAdminLoginModal(true);
-            }}
-          />
         </div>
       </main>
     </div>

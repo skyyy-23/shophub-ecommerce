@@ -5,7 +5,6 @@ import {
   fetchProducts,
   updateProduct,
 } from "../services/shopApi";
-import { getAuthToken } from "../services/authStorage";
 
 const initialForm = {
   name: "",
@@ -37,7 +36,6 @@ export const useProducts = () => {
 
     try {
       const data = await fetchProducts();
-      console.log("Fetched products:", data);
       setProducts(data);
     } catch (error) {
       console.error("Failed to fetch products:", error.response?.data || error.message);
@@ -89,11 +87,10 @@ export const useProducts = () => {
     setIsSubmittingProduct(true);
 
     try {
-      const token = getAuthToken();
       if (editingId) {
-        await updateProduct(editingId, form, token);
+        await updateProduct(editingId, form);
       } else {
-        await createProduct(form, token);
+        await createProduct(form);
       }
 
       await refreshProducts();
@@ -124,8 +121,7 @@ export const useProducts = () => {
     setDeletingProductId(productId);
 
     try {
-      const token = getAuthToken();
-      await deleteProduct(productId, token);
+      await deleteProduct(productId);
       await refreshProducts();
     } catch (error) {
       console.error("Failed to delete product:", error.response?.data || error.message);

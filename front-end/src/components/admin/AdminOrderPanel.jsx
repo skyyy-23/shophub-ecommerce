@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import { FiEdit, FiCheck, FiX, FiPackage, FiTruck, FiCheckCircle, FiXCircle, FiClock, FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { formatPrice } from "../../utils/formatPrice";
-import { apiEndpoints } from "../../config/api";
-import { getAuthToken } from "../../services/authStorage";
+import {
+  fetchAdminOrders as fetchAdminOrdersRequest,
+  updateOrderTracking,
+} from "../../services/shopApi";
 
 const statusConfig = {
   pending: {
@@ -57,14 +59,7 @@ function AdminOrderPanel() {
   const fetchAllOrders = async () => {
     try {
       setLoading(true);
-      const token = getAuthToken();
-      const response = await fetch(apiEndpoints.adminOrders, {
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-      const data = await response.json();
+      const data = await fetchAdminOrdersRequest();
       setOrders(data);
       setCurrentPage(1); // Reset to first page when new orders are loaded
     } catch (error) {
@@ -85,26 +80,12 @@ function AdminOrderPanel() {
 
     setSaving(true);
     try {
-      const token = getAuthToken();
-      const response = await fetch(
-        apiEndpoints.orderTracking(orderId),
-        {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${token}`,
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            status: editStatus,
-            description: editDescription || `Status updated to ${editStatus}`,
-          }),
-        }
-      );
-
-      if (response.ok) {
-        setEditingId(null);
-        fetchAllOrders();
-      }
+      await updateOrderTracking(orderId, {
+        status: editStatus,
+        description: editDescription || `Status updated to ${editStatus}`,
+      });
+      setEditingId(null);
+      fetchAllOrders();
     } catch (error) {
       console.error("Failed to update order status:", error);
       alert("Failed to update order status");
@@ -151,7 +132,7 @@ function AdminOrderPanel() {
           Order Management
         </h2>
         <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-          {orders.length + 1} total orders
+          {orders.length} total orders
         </div>
       </div>
 
@@ -200,7 +181,7 @@ function AdminOrderPanel() {
                   <div className="flex justify-between items-center">
                     <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Items</span>
                     <span className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white">
-                      {order.order_items?.length + 1 || 0} items
+                      {order.order_items?.length || 0} items
                     </span>
                   </div>
                   <div className="flex justify-between items-center">

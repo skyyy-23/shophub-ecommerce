@@ -1,50 +1,51 @@
-import { FiShoppingBag, FiShoppingCart, FiTrash2, FiX } from "react-icons/fi";
+import { FiArrowLeft, FiShoppingBag, FiShoppingCart, FiTrash2 } from "react-icons/fi";
 import Spinner from "../common/Spinner";
 import { formatPrice } from "../../utils/formatPrice";
 
 function CartSidebar({
-  variant = "sidebar",
-  showCart,
+  variant = "page",
   cart,
   total,
   isPlacingOrder,
-  onClose,
   onRemoveItem,
   onUpdateQuantity,
   onPlaceOrder,
   onClearCart,
+  onContinueShopping,
 }) {
-  const isInline = variant === "inline";
+  const isPage = variant === "page";
 
-  if (isInline && !showCart) {
-    return null;
-  }
-
-  const containerClasses = isInline
-    ? "relative w-full bg-white dark:bg-gray-800 shadow-lg rounded-xl p-4 sm:p-6 border border-gray-200 dark:border-gray-700 flex flex-col h-[100vh] overflow-hidden text-sm sm:text-base"
+  const containerClasses = isPage
+    ? "w-full max-w-4xl mx-auto bg-white dark:bg-gray-800 shadow-xl rounded-3xl p-5 sm:p-8 border border-gray-200 dark:border-gray-700 text-sm sm:text-base"
     : "relative w-full md:w-96 bg-white dark:bg-gray-800 shadow-xl rounded-2xl p-4 sm:p-6 border border-gray-200 dark:border-gray-700 flex flex-col md:max-h-screen overflow-hidden text-sm sm:text-base";
 
   return (
-    <aside
-      className={containerClasses}
-    >
-      <div className="flex items-center justify-between mb-4 sm:mb-6">
-        <h2 className="text-lg sm:text-2xl font-bold text-gray-800 dark:text-white">
-          <FiShoppingCart className="inline mr-2" />
-          Shopping Cart
-        </h2>
+    <aside className={containerClasses}>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between mb-6 sm:mb-8">
+        <div>
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white">
+            <FiShoppingCart className="inline mr-3 -mt-1" />
+            Your Cart
+          </h2>
+          <p className="mt-2 text-sm sm:text-base text-gray-600 dark:text-gray-400">
+            Review your items, update quantities, and place your order from one page.
+          </p>
+        </div>
 
-        <button
-          onClick={onClose}
-          disabled={isPlacingOrder}
-          className={`${isInline ? "" : "md:hidden"} p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg disabled:opacity-60 disabled:cursor-not-allowed`}
-        >
-          <FiX />
-        </button>
+        {onContinueShopping && (
+          <button
+            onClick={onContinueShopping}
+            disabled={isPlacingOrder}
+            className="inline-flex items-center justify-center gap-2 self-start bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-white font-semibold px-4 py-2.5 rounded-xl transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            <FiArrowLeft />
+            Continue Shopping
+          </button>
+        )}
       </div>
 
       {cart.length === 0 ? (
-        <div className="text-center py-10 sm:py-12 text-gray-600 dark:text-gray-400">
+        <div className="text-center py-12 sm:py-16 text-gray-600 dark:text-gray-400">
           <p className="text-3xl sm:text-4xl mb-2">
             <FiShoppingBag className="inline" />
           </p>
@@ -53,7 +54,7 @@ function CartSidebar({
         </div>
       ) : (
         <>
-          <div className="scroll-bar flex-1 overflow-y-auto space-y-3 sm:space-y-4 mb-4 sm:mb-6 pr-1">
+          <div className="space-y-3 sm:space-y-4 mb-6 sm:mb-8">
             {cart.map((item) => (
               <div
                 key={item.id}
@@ -103,37 +104,37 @@ function CartSidebar({
             ))}
           </div>
 
-          <div className="border-t border-gray-300 dark:border-gray-600 pt-4 sm:pt-6 space-y-4">
+          <div className="border-t border-gray-300 dark:border-gray-600 pt-5 sm:pt-6 space-y-4">
             <div className="flex items-center justify-between text-base sm:text-lg">
               <span className="font-semibold text-gray-700 dark:text-gray-300">Subtotal:</span>
               <span className="text-xl sm:text-2xl font-bold text-blue-600 dark:text-blue-400">
                 {formatPrice(total)}
               </span>
             </div>
-              <div className="flex gap-3">
-                <button
-                  onClick={onPlaceOrder}
-                  disabled={cart.length === 0 || isPlacingOrder}
-                  className="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-bold py-2.5 sm:py-3 rounded-lg transition-all transform hover:scale-105 active:scale-95 shadow-lg disabled:cursor-not-allowed"
-                >
-                  {isPlacingOrder ? (
-                    <>
-                      <Spinner sizeClass="h-4 w-4" />
-                      Placing Order...
-                    </>
-                  ) : (
-                    <>Place Order</>
-                  )}
-                </button>
-                
-                <button
-                  onClick={onClearCart}
-                  disabled={isPlacingOrder}
-                  className="w-full bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500 text-gray-800 dark:text-white font-semibold py-2.5 sm:py-2 rounded-lg transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-                >
-                  Clear Cart
-                </button>
-              </div>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={onPlaceOrder}
+                disabled={cart.length === 0 || isPlacingOrder}
+                className="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-bold py-3 rounded-xl transition-all transform hover:scale-[1.01] active:scale-[0.99] shadow-lg disabled:cursor-not-allowed"
+              >
+                {isPlacingOrder ? (
+                  <>
+                    <Spinner sizeClass="h-4 w-4" />
+                    Placing Order...
+                  </>
+                ) : (
+                  <>Place Order</>
+                )}
+              </button>
+
+              <button
+                onClick={onClearCart}
+                disabled={isPlacingOrder}
+                className="w-full bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500 text-gray-800 dark:text-white font-semibold py-3 rounded-xl transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                Clear Cart
+              </button>
+            </div>
           </div>
         </>
       )}

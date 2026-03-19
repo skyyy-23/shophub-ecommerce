@@ -41,7 +41,7 @@ function ProductGrid({
       ) : (
         <div className="overflow-visible md:overflow-auto md:max-h-[70vh]">
           <div
-            className={`grid ${isAdmin? "lg:grid-cols-5":"lg:grid-cols-3"} ${isAdmin ? "md:grid-cols-5" : "md:grid-cols-3"} gap-3 sm:gap-4 p-0 sm:p-0`}
+            className={`grid lg:grid-cols-4 md:grid-cols-3 sm:grid-cols-2 xs:grid-cols-2 gap-3 sm:gap-4 p-0 sm:p-0`}
           >
             {products.map((product) => (
               <ProductCard

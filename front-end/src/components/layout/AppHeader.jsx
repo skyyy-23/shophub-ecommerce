@@ -14,11 +14,13 @@ function AppHeader({
   cartCount,
   user,
   onOpenAddProduct,
-  onToggleCart,
+  onOpenCart,
+  isCartActive = false,
   onToggleTheme,
   onLogin,
   onAdminLogin,
   onLogout,
+  isAdmin,
 }) {
   return (
     <header className="sticky top-0 z-50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-700 shadow-sm">
@@ -40,21 +42,26 @@ function AppHeader({
                 className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold px-3 py-2 text-xs sm:text-sm md:text-base rounded-lg shadow"
               >
                 <FiPlus />
-                Add Product
+                <span className="hidden sm:inline">Add Product</span>
               </button>
             )}
-
-            <button
-              onClick={onToggleCart}
-              className="relative p-1.5 sm:p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-            >
-              <FiShoppingCart className="text-xl sm:text-2xl text-green-400" />
-              {cartCount > 0 && (
-                <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                  {cartCount}
-                </span>
-              )}
-            </button>
+          {!isAdmin && (
+              <button
+                onClick={onOpenCart}
+                className={`relative p-1.5 sm:p-2 rounded-lg transition-colors ${
+                  isCartActive
+                    ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300"
+                    : "hover:bg-gray-100 dark:hover:bg-gray-700"
+                }`}
+              >
+                <FiShoppingCart className="text-xl sm:text-2xl text-green-400" />
+                {cartCount > 0 && (
+                  <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                    {cartCount}
+                  </span>
+                )}
+              </button>
+          )}            
 
             {user ? (
               <div className="flex flex-wrap items-center gap-2 md:gap-3">
@@ -74,7 +81,7 @@ function AppHeader({
                   className="inline-flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white font-semibold px-3 py-2 text-xs sm:text-sm md:text-base rounded-lg shadow"
                 >
                   <FiLogOut />
-                  Logout
+                  <span className="hidden sm:inline">Logout</span>
                 </button>
               </div>
             ) : (

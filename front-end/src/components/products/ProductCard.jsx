@@ -53,7 +53,7 @@ function ProductCard({
             {formatPrice(product.price)}
           </span>
 
-          <span className={`text-[10px] sm:text-xs font-semibold px-2 py-0.5 rounded-full ${getStockBadgeClass(stock)}`}>
+          <span className={`sm:text-[0.7rem] sm:px-1.5 xs:text-[8px] font-semibold px-1 py-0.5 rounded-full ${getStockBadgeClass(stock)}`}>
             {stock} stock
           </span>
         </div>
@@ -64,16 +64,16 @@ function ProductCard({
               <button
                 onClick={() => onEdit?.(product)}
                 disabled={disableProductActions}
-                className="flex-1 bg-blue-500 hover:bg-blue-600 disabled:bg-blue-400 text-white text-xs sm:text-sm font-semibold py-1.5 rounded transition-colors flex items-center justify-center gap-1 disabled:cursor-not-allowed"
+                className="flex-1 bg-blue-500 hover:bg-blue-600 disabled:bg-blue-400 text-white text-xs sm:text-sm font-semibold py-1.5 px-2 rounded transition-colors flex items-center justify-center gap-1 disabled:cursor-not-allowed"
               >
                 <FiEdit3 />
-                Edit
+                <span className="hidden sm:inline">Edit</span>
               </button>
 
               <button
                 onClick={() => onDelete?.(product.id)}
                 disabled={disableProductActions}
-                className="flex-1 bg-red-500 hover:bg-red-600 disabled:bg-red-400 text-white text-xs sm:text-sm font-semibold py-1.5 px-1 rounded transition-colors flex items-center justify-center gap-1 disabled:cursor-not-allowed"
+                className="flex-1 bg-red-500 hover:bg-red-600 disabled:bg-red-400 text-white text-xs sm:text-sm font-semibold py-1.5 px-2 rounded transition-colors flex items-center justify-center gap-1 disabled:cursor-not-allowed"
               >
                 {isDeleting ? (
                   <>
@@ -83,7 +83,7 @@ function ProductCard({
                 ) : (
                   <>
                     <FiTrash2 />
-                    Delete
+                    <span className="hidden sm:inline">Delete</span>
                   </>
                 )}
               </button>
@@ -93,10 +93,10 @@ function ProductCard({
           <button
             onClick={() => onAddToCart(product)}
             disabled={stock <= 0 || isDeleting}
-            className={`flex-1 bg-green-500 hover:bg-green-600 disabled:bg-gray-400 text-white text-xs sm:text-sm font-semibold py-1.5 px-1 rounded transition-colors disabled:cursor-not-allowed flex items-center justify-center gap-1 ${isAdmin ? '' : 'w-full'}`}
+            className={`flex-1 bg-green-500 hover:bg-green-600 disabled:bg-gray-400 text-white text-xs sm:text-sm font-semibold py-1.5 px-2 rounded transition-colors disabled:cursor-not-allowed flex items-center justify-center gap-1 ${isAdmin ? '' : 'w-full'}`}
           >
             <FiShoppingCart />
-            Add
+            <span className="hidden sm:inline">Add</span>
           </button>
         </div>
       </div>

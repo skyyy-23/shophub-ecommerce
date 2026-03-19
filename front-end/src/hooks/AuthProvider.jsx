@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
-import { apiEndpoints } from "../config/api";
 import {
-  clearAuthSession,
-  getAuthSession,
-  persistAuthSession,
+  clearLegacyAuthStorage,
+  persistRememberPreference,
 } from "../services/authStorage";
+import { fetchCurrentUser, logoutUser } from "../services/shopApi";
 import { AuthContext } from "./useAuth";
 
 export function AuthProvider({ children }) {
@@ -15,43 +14,25 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     let isMounted = true;
 
+    clearLegacyAuthStorage();
+
     const initializeAuth = async () => {
-      const { token, user: storedUser, remember, scope } = getAuthSession();
-
-      if (storedUser && isMounted) {
-        setUser(storedUser);
-      }
-
-      if (!token) {
-        if (isMounted) {
-          setIsLoading(false);
-        }
-        return;
-      }
-
       try {
-        const response = await fetch(apiEndpoints.user, {
-          headers: {
-            "Authorization": `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        });
+        const data = await fetchCurrentUser();
 
-        const data = await response.json().catch(() => null);
-
-        if (response.ok && data?.user) {
-          if (isMounted) {
-            setUser(data.user);
-          }
-          persistAuthSession({ token, user: data.user, remember, scope });
-        } else if (response.status === 401 || response.status === 419) {
-          clearAuthSession(scope);
-          if (isMounted) {
-            setUser(null);
-          }
+        if (isMounted && data?.user) {
+          setUser(data.user);
         }
-      } catch {
-        // Keep existing session on network/parse errors.
+      } catch (error) {
+        const status = error.response?.status;
+
+        if (status !== 401 && status !== 419) {
+          console.error("Failed to restore session:", error);
+        }
+
+        if (isMounted) {
+          setUser(null);
+        }
       } finally {
         if (isMounted) {
           setIsLoading(false);
@@ -59,7 +40,7 @@ export function AuthProvider({ children }) {
       }
     };
 
-    initializeAuth();
+    void initializeAuth();
 
     return () => {
       isMounted = false;
@@ -71,10 +52,8 @@ export function AuthProvider({ children }) {
       return;
     }
 
-    if (session.token && session.user) {
-      persistAuthSession({
-        token: session.token,
-        user: session.user,
+    if (session.user) {
+      persistRememberPreference({
         remember: session.remember,
         scope: session.scope,
       });
@@ -86,24 +65,11 @@ export function AuthProvider({ children }) {
   };
 
   const logout = async () => {
-    let scope = "user";
     try {
-      const session = getAuthSession();
-      scope = session.scope || "user";
-      const token = session.token;
-      if (token) {
-        await fetch(apiEndpoints.logout, {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        });
-      }
+      await logoutUser();
     } catch (error) {
       console.error("Logout error:", error);
     } finally {
-      clearAuthSession(scope);
       setUser(null);
     }
   };

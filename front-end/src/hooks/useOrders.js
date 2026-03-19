@@ -1,4 +1,9 @@
-import { useState, useEffect } from "react";
+import { useEffect, useEffectEvent, useState } from "react";
+import {
+  fetchOrderTracking,
+  fetchUserOrders as fetchUserOrdersRequest,
+  updateOrderTracking,
+} from "../services/shopApi";
 
 export const useOrders = (userId) => {
   const [orders, setOrders] = useState([]);
@@ -6,19 +11,17 @@ export const useOrders = (userId) => {
   const [error, setError] = useState(null);
 
   const fetchUserOrders = async () => {
-    if (!userId) return;
+    if (!userId) {
+      setOrders([]);
+      setLoading(false);
+      return;
+    }
 
     setLoading(true);
     setError(null);
 
     try {
-      const response = await fetch(
-        `http://127.0.0.1:8000/api/users/${userId}/orders`
-      );
-      if (!response.ok) {
-        throw new Error("Failed to fetch orders");
-      }
-      const data = await response.json();
+      const data = await fetchUserOrdersRequest(userId);
       setOrders(data);
     } catch (err) {
       setError(err.message);
@@ -30,13 +33,7 @@ export const useOrders = (userId) => {
 
   const getOrderTracking = async (orderId) => {
     try {
-      const response = await fetch(
-        `http://127.0.0.1:8000/api/orders/${orderId}/tracking`
-      );
-      if (!response.ok) {
-        throw new Error("Failed to fetch tracking");
-      }
-      return await response.json();
+      return await fetchOrderTracking(orderId);
     } catch (err) {
       console.error("Failed to fetch tracking:", err);
       throw err;
@@ -45,19 +42,7 @@ export const useOrders = (userId) => {
 
   const updateOrderStatus = async (orderId, status, description) => {
     try {
-      const response = await fetch(
-        `http://127.0.0.1:8000/api/orders/${orderId}/tracking`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ status, description }),
-        }
-      );
-      if (!response.ok) {
-        throw new Error("Failed to update status");
-      }
-      const data = await response.json();
-      // Update the local orders list
+      const data = await updateOrderTracking(orderId, { status, description });
       setOrders((prev) =>
         prev.map((order) =>
           order.id === orderId ? { ...order, ...data.order } : order
@@ -70,8 +55,12 @@ export const useOrders = (userId) => {
     }
   };
 
+  const syncOrders = useEffectEvent(() => {
+    void fetchUserOrders();
+  });
+
   useEffect(() => {
-    fetchUserOrders();
+    syncOrders();
   }, [userId]);
 
   return {

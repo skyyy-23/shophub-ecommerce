@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { FiMail, FiLock, FiEye, FiEyeOff, FiUser, FiX } from "react-icons/fi";
-import { apiEndpoints } from "../../config/api";
 import { wasRemembered } from "../../services/authStorage";
+import { loginAdmin, loginUser } from "../../services/shopApi";
 
 function LoginModal({
   show,
@@ -32,20 +32,15 @@ function LoginModal({
       const payload = {
         email: form.email.trim(),
         password: form.password,
+        remember: rememberMe,
       };
-      const response = await fetch(
-        isAdminMode ? apiEndpoints.adminLogin : apiEndpoints.login,
-        {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-        }
-      );
 
-      const data = await response.json().catch(() => null);
+      const data = isAdminMode
+        ? await loginAdmin(payload)
+        : await loginUser(payload);
 
-      if (response.ok && data?.success) {
-        if (!data?.token || !data?.user) {
+      if (data?.success) {
+        if (!data?.user) {
           setError("Unexpected response from server.");
           return;
         }
@@ -55,31 +50,27 @@ function LoginModal({
         }
         onLogin({
           user: data.user,
-          token: data.token,
           remember: rememberMe,
           scope: isAdminMode ? "admin" : "user",
         });
         onClose();
-      } else {
-        const validationErrors = data?.errors
-          ? Object.values(data.errors).flat().join(", ")
-          : null;
-        if (validationErrors) {
-          setError(validationErrors);
-        } else if (response.status === 403) {
-          const fallbackMessage = isAdminMode
-            ? "Admin access required."
-            : "Access denied.";
-          setError(data?.message || fallbackMessage);
-        } else if (response.status === 401) {
-          setError("Invalid email or password.");
-        } else {
-          setError(data?.message || "Login failed. Please try again.");
-        }
       }
     } catch (err) {
       console.error("Login error:", err);
-      setError(`Network error: ${err.message || "Please try again."}`);
+      const data = err.response?.data;
+      const validationErrors = data?.errors
+        ? Object.values(data.errors).flat().join(", ")
+        : null;
+
+      if (validationErrors) {
+        setError(validationErrors);
+      } else if (err.response?.status === 403) {
+        setError(data?.message || "Access denied.");
+      } else if (err.response?.status === 401) {
+        setError("Invalid email or password.");
+      } else {
+        setError(data?.message || `Network error: ${err.message || "Please try again."}`);
+      }
     } finally {
       setIsLoading(false);
     }

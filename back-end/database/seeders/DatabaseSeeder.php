@@ -16,20 +16,25 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        if (app()->environment(['local', 'testing'])) {
+            User::factory()->create([
+                'name' => 'Test User',
+                'email' => 'test@example.com',
+            ]);
+        }
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        $adminEmail = env('ADMIN_EMAIL');
+        $adminPassword = env('ADMIN_PASSWORD');
+        $adminName = env('ADMIN_NAME', 'ShopHub Admin');
 
-        $adminEmail = env('ADMIN_EMAIL', 'admin@shophub.local');
-        $adminPassword = env('ADMIN_PASSWORD', 'Admin123!');
+        if (! $adminEmail || ! $adminPassword) {
+            return;
+        }
 
         User::updateOrCreate(
             ['email' => $adminEmail],
             [
-                'name' => 'ShopHub Admin',
+                'name' => $adminName,
                 'password' => Hash::make($adminPassword),
                 'role' => 'admin',
             ]
